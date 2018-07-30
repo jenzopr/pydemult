@@ -18,6 +18,7 @@ setup(name='pydemult',
       },
       scripts = [],
       install_requires=[
+        'pandas',
         'mputil'
       ],
       classifiers = [

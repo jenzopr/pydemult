@@ -9,9 +9,9 @@ import pandas as pd
 from mputil import lazy_map
 from functools import partial
 
-from . import mutationhash
-from . import buffered_reader
-from worker import _demult_chunk, _writer
+from .mutationhash import mutationhash
+from .buffered_reader import buffered_blob
+from .worker import _demult_chunk, _writer
 
 def chunks(data, SIZE=10000):
     it = iter(data)
@@ -30,7 +30,7 @@ def demultiplex():
     parser.add_argument('--column-separator', help='Separator that is used in samplesheet', type=str, default='\t')
     parser.add_argument('--buffer-size', help="Buffer size for the FASTQ reader (in Bytes). Must be large enough to contain the largest entry.", type = int, default = 4000000)
     parser.add_argument('--threads', '-t', help='Number of threads to use for multiprocessing.', type=int, metavar='1', default=1)
-    parser.add_argument('--writer-threads', help='Number of threads to use for writing', type=int, metavar='1', default=1)
+    parser.add_argument('--writer-threads', help='Number of threads to use for writing', type=int, metavar='1', default=2)
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
     parser.add_argument('--debug', action='store_true')
 
@@ -71,7 +71,7 @@ def demultiplex():
     logger.debug('Found barcodes:' + ','.join(barcodes))
 
     logger.debug('Creating mutation hash with edit distance {} for {} barcodes.'.format(args.edit_distance, len(barcodes)))
-    mutationhash = mutationhash.mutationhash(barcodes, args.edit_distance, logger)
+    mut_hash = mutationhash(barcodes, args.edit_distance, logger)
 
     bufsize = args.buffer_size
     manager = multiprocessing.Manager()
@@ -81,23 +81,23 @@ def demultiplex():
     if args.write_unmatched:
         queues = {'unmatched': manager.Queue()}
         queue_list = [queues['unmatched']]
-        writer_pool.apply_async(worker._writer, (queues['unmatched'], ['unmatched']), callback = lambda x: print(x))
+        writer_pool.apply_async(_writer, (queues['unmatched'], ['unmatched']), callback = lambda x: print(x))
     else:
         queues = {}
         queue_list = []
 
-    for chunks in chunks(barcode_dict, args.writer_threads-1):
-        logger.debug('Creating writer queue for barcodes {}.'.format(','.join(chunks.values())))
+    for chunk in chunks(barcode_dict, args.writer_threads-1):
+        logger.debug('Creating writer queue for barcodes {}.'.format(','.join(chunk.values())))
         q = manager.Queue()
-        writer_pool.apply_async(_writer, (q, chunks), callback = lambda x: print(x))
+        writer_pool.apply_async(_writer, (q, chunk), callback = lambda x: print(x))
         queue_list.append(q)
-        for bc in chunks.values():
+        for bc in chunk.values():
             queues[bc] = q
 
     zcat = subprocess.Popen(['zcat', args.fastq], stdout=subprocess.PIPE, bufsize = bufsize)
     with zcat.stdout as fh:
-        blob_generator = reader.buffered_blob(fh, bufsize)
-        demult_chunk = partial(worker._demult_chunk, mutationhash = mutationhash, regex = c_barcode_regex, write_unmatched = args.write_unmatched, q = queues)
+        blob_generator = buffered_blob(fh, bufsize)
+        demult_chunk = partial(_demult_chunk, mutationhash = mut_hash, regex = c_barcode_regex, write_unmatched = args.write_unmatched, q = queues)
         data = lazy_map(demult_chunk, blob_generator, n_cpus = args.threads)
 
     for q in queue_list:

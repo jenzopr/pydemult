@@ -3,6 +3,11 @@ import re
 import time
 from functools import reduce
 
+def entryfunc(blob):
+    entries = blob.split(b'\n')
+    # (header, sequence, quality)
+    return(zip(entries[::4], entries[1::4], entries[3::4]))
+
 def _demult_chunk(chunk, mutationhash, regex, write_unmatched, q):
     start = time.time()
     bc_chunks = dict()

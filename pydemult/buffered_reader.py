@@ -23,8 +23,3 @@ def buffered_blob(handle, bufsize):
 
         backlog = blob[i+1:len(blob)]
         yield blob[0:i]
-
-def entryfunc(blob):
-    entries = blob.split(b'\n')
-    # (header, sequence, quality)
-    return(zip(entries[::4], entries[1::4], entries[3::4]))
