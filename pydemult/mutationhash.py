@@ -1,15 +1,15 @@
 import itertools
 
-"""@author Valentine Svensson<valentine@nxn.se>"""
+# With input from Valentine Svensson<valentine@nxn.se
 
-def mutationhash(strings, nedit, log = None):
+def mutationhash(strings, nedit, alphabet = ["A", "C", "G", "T"], log = None):
     """
     produce a hash with each key a nedit distance substitution for a set of
     strings. values of the hash is the set of strings the substitution could
     have come from
     """
     maxlen = max([len(string) for string in strings])
-    indexes = generate_idx(maxlen, nedit)
+    indexes = generate_idx(maxlen, nedit, alphabet = alphabet)
     muthash = dict()
     for string in strings:
         if string not in muthash:
@@ -41,7 +41,7 @@ def valid_substitution(strlen, index):
     values = index[0]
     return all([strlen > i for i in values])
 
-def generate_idx(maxlen, nedit):
+def generate_idx(maxlen, nedit, alphabet = ["A", "C", "G", "T"]):
     """
     generate all possible nedit edits of a string. each item has the form
     ((index1, index2), 'A', 'G')  for nedit=2
@@ -50,9 +50,8 @@ def generate_idx(maxlen, nedit):
     this covers all edits < nedit as well since some of the specified
     substitutions will not change the base
     """
-    ALPHABET = ["A", "C", "G", "T"]
     indexlists = []
-    ALPHABETS = [ALPHABET for x in range(nedit)]
+    ALPHABETS = [alphabet for x in range(nedit)]
     return list(itertools.product(itertools.combinations(range(maxlen), nedit),
                                   *ALPHABETS))
 

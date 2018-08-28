@@ -24,6 +24,7 @@ def demultiplex():
     parser.add_argument('--samplesheet', '-w', help = 'Samplesheet containing barcodes and samplenames', metavar = 'samplesheet.txt', type=str)
     parser.add_argument('--barcode-length', help='Length of the barcode', metavar='11', type=int, default=11)
     parser.add_argument('--edit-distance', help='Maximum allowed edit distance for barcodes', metavar = '1', type=int, default = 1)
+    parser.add_argument('--edit-alphabet', help='The alphabet that is used to created edited barcodes', choices=['N', 'ACGT', 'ACGTN'], default = "ACGT", type = str, metavar = "ACGT")
     parser.add_argument('--write-unmatched', help='Write reads with unmatched barcodes into unmatched.fastq.gz', action='store_true')
     parser.add_argument('--barcode-column', help='Name of the column containing barcodes', type=str, default='Barcode')
     parser.add_argument('--sample-column', help='Name of the column containing sample names', type=str, default='Sample')
@@ -31,7 +32,7 @@ def demultiplex():
     parser.add_argument('--buffer-size', help="Buffer size for the FASTQ reader (in Bytes). Must be large enough to contain the largest entry.", type = int, default = 4000000)
     parser.add_argument('--threads', '-t', help='Number of threads to use for multiprocessing.', type=int, metavar='1', default=1)
     parser.add_argument('--writer-threads', help='Number of threads to use for writing', type=int, metavar='1', default=2)
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.2')
     parser.add_argument('--debug', action='store_true')
 
     args = parser.parse_args()
@@ -71,7 +72,7 @@ def demultiplex():
     logger.debug('Found barcodes:' + ','.join(barcodes))
 
     logger.debug('Creating mutation hash with edit distance {} for {} barcodes.'.format(args.edit_distance, len(barcodes)))
-    mut_hash = mutationhash(barcodes, args.edit_distance, logger)
+    mut_hash = mutationhash(strings = barcodes, nedit = args.edit_distance, alphabet = list(args.edit_alphabet), log = logger)
 
     bufsize = args.buffer_size
     manager = multiprocessing.Manager()
