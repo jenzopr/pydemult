@@ -92,7 +92,7 @@ def demultiplex():
         q_bc_dict = dict((k, barcode_dict[k]) for k in chunk)
         writer_pool.apply_async(_writer, (q, q_bc_dict), callback = lambda x: print(x))
         queue_list.append(q)
-        for bc in chunk.values():
+        for bc in q_bc_dict.values():
             queues[bc] = q
 
     zcat = subprocess.Popen(['zcat', args.fastq], stdout=subprocess.PIPE, bufsize = bufsize)
