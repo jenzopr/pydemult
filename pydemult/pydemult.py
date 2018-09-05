@@ -13,10 +13,9 @@ from .mutationhash import mutationhash
 from .buffered_reader import buffered_blob
 from .worker import _demult_chunk, _writer
 
-def chunks(data, SIZE=10000):
-    it = iter(data)
-    for i in range(0, len(data), SIZE):
-        yield {k:data[k] for k in itertools.islice(it, SIZE)}
+# https://stackoverflow.com/a/43922107/6198494
+def chunker_list(seq, size):
+    return (seq[i::size] for i in range(size))
 
 def demultiplex():
     parser = argparse.ArgumentParser(description='Demultiplexing of fastq files')
@@ -32,7 +31,7 @@ def demultiplex():
     parser.add_argument('--buffer-size', help="Buffer size for the FASTQ reader (in Bytes). Must be large enough to contain the largest entry.", type = int, default = 4000000, metavar = '4000000')
     parser.add_argument('--threads', '-t', help='Number of threads to use for multiprocessing.', type=int, metavar='1', default=1)
     parser.add_argument('--writer-threads', help='Number of threads to use for writing', type=int, metavar='1', default=2)
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.2')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3')
     parser.add_argument('--debug', action='store_true')
 
     args = parser.parse_args()
@@ -87,10 +86,11 @@ def demultiplex():
         queues = {}
         queue_list = []
 
-    for chunk in chunks(barcode_dict, args.writer_threads-1):
-        logger.debug('Creating writer queue for barcodes {}.'.format(','.join(chunk.values())))
+    for chunk in chunker_list(list(barcode_dict.keys()), args.writer_threads-1):
+        logger.debug('Creating writer queue for samples {}.'.format(','.join(chunk)))
         q = manager.Queue()
-        writer_pool.apply_async(_writer, (q, chunk), callback = lambda x: print(x))
+        q_bc_dict = dict((k, barcode_dict[k]) for k in chunk)
+        writer_pool.apply_async(_writer, (q, q_bc_dict), callback = lambda x: print(x))
         queue_list.append(q)
         for bc in chunk.values():
             queues[bc] = q
