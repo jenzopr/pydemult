@@ -34,6 +34,14 @@ Since the sample barcode is six bases long, we have to set the corresponding opt
 pydemult --fastq input.fastq.gz --barcodes barcodes.txt --barcode-length 6
 ```
 
+### Output
+
+`pydemult` will create a compressed fastq file for each **sample barcode**, with the filename taken from the corresponding *Sample* column entry of `barcodes.txt`.  
+
+### Barcode and UMI regular expressions
+
+By default, `pydemult` parses the read name for the cell barcode `CB` with the regular expression `(.*):(?P<CB>[ATGCN]{#bclen#}`, where `#bclen#` is replaced by the value of `--barcode-length`. For DropSeq data preprocessed by the [umis](https://github.com/vals/umis) tool, a regex like `(.*):CELL_(?P<CB>[ATGCN]{#bclen#}):UMI_(?P<UMI>[ATGCN]{8})` is advisable.
+
 ### A note on multithreading
 
 `pydemult` divides its work into a demultiplexing and output part. The main thread streams the input and lazily distributes data blobs (of size `--buffer-size`) across `n` different demultiplexing threads (set with `--threads`), where the actual work happens. Demultiplexed input is then sent over to `m` threads for writing into individual output files (set with `--writer-threads`). Reading and demultiplexing are fast and CPU-bound operations, while output speed is determined by how fast data can be written to the underlying file system. In our experience, output is much slower than demultiplexing itself and requires proportionally more cores to speed up the runtime. We obtained best results when distributing output to three threads for each demultiplexing thread (`1:3` ratio of `--threads` to `--writer-threads`).  
