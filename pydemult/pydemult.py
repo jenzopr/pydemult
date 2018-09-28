@@ -21,8 +21,8 @@ def demultiplex():
     parser = argparse.ArgumentParser(description='Demultiplexing of fastq files')
     parser.add_argument('--fastq', '-f', help='FASTQ file for demultiplexing.', metavar='input.fastq.gz', type=str)
     parser.add_argument('--samplesheet', '-w', help = 'Samplesheet containing barcodes and samplenames', metavar = 'samplesheet.txt', type=str)
-    parser.add_argument('--barcode-regex', help = 'Regular expression to parse cell barcode (CB) and UMIs (UMI) from read names', metavar = '(.*):(?P<CB>[ATGCN]{\#bclen\#}', default = '(.*):(?P<CB>[ATGCN]{\#bclen\#}', type = str)
-    parser.add_argument('--barcode-length', help='Length of cell barcode. Can be inserted into barcode regex via \#bclen\#.', metavar='11', type=str, default='11')
+    parser.add_argument('--barcode-regex', help = 'Regular expression to parse cell barcode (CB) and UMIs (UMI) from read names', metavar = '', default = 'none', type = str)
+    parser.add_argument('--barcode-length', help='Length of cell barcode. Can be inserted into barcode regex via bclen.', metavar='11', type=str, default='11')
     parser.add_argument('--edit-distance', help='Maximum allowed edit distance for barcodes', metavar = '1', type=int, default = 1)
     parser.add_argument('--edit-alphabet', help='The alphabet that is used to created edited barcodes', choices=['N', 'ACGT', 'ACGTN'], default = "ACGT", type = str, metavar = "ACGT")
     parser.add_argument('--write-unmatched', help='Write reads with unmatched barcodes into unmatched.fastq.gz', action='store_true')
@@ -54,6 +54,9 @@ def demultiplex():
     #
     # Create regular expression for barcode parsing from sequence header
     #
+    if args.barcode_regex == "none":
+        args.barcode_regex = '(.*):(?P<CB>[ATGCN]{#bclen#}'
+    
     barcode_regex = args.barcode_regex.replace('#bclen#', args.barcode_length)
     #barcode_regex = '(.*):CELL_(?P<CB>[ATGCN]{'+str(args.barcode_length)+'}):UMI_(?P<UMI>[ATGCN]{8}):(.*)'
     #barcode_regex = '(.*):[ATGC]{0,5}(?P<CB1>[ATGCN]{6})TAGCCATCGCATTGC(?P<CB2>[ATGCN]{6})TACCTCTGAGCTGAA(?P<CB3>[ATGCN]{6})ACG(?P<UMI>[ATGCN]{6})GACT'
