@@ -20,8 +20,8 @@ def chunker_list(seq, size):
 def demultiplex():
     parser = argparse.ArgumentParser(description='Demultiplexing of fastq files')
     parser.add_argument('--fastq', '-f', help='FASTQ file for demultiplexing.', metavar='input.fastq.gz', type=str)
-    parser.add_argument('--samplesheet', '-w', help = 'Samplesheet containing barcodes and samplenames', metavar = 'samplesheet.txt', type=str)
-    parser.add_argument('--barcode-regex', help = 'Regular expression to parse cell barcode (CB) and UMIs (UMI) from read names', metavar = '(.*):(?P<CB>[ATGCN]{11}', default = '(.*):(?P<CB>[ATGCN]{11}', type = str)
+    parser.add_argument('--samplesheet', '-s', help = 'Samplesheet containing barcodes and samplenames', metavar = 'samplesheet.txt', type=str)
+    parser.add_argument('--barcode-regex', '-b', help = 'Regular expression to parse cell barcode (CB) and UMIs (UMI) from read names', metavar = '(.*):(?P<CB>[ATGCN]{11}', default = '(.*):(?P<CB>[ATGCN]{11}', type = str)
     parser.add_argument('--edit-distance', help='Maximum allowed edit distance for barcodes', metavar = '1', type=int, default = 1)
     parser.add_argument('--edit-alphabet', help='The alphabet that is used to created edited barcodes', choices=['N', 'ACGT', 'ACGTN'], default = "ACGTN", type = str, metavar = "ACGTN")
     parser.add_argument('--write-unmatched', help='Write reads with unmatched barcodes into unmatched.fastq.gz', action='store_true')
@@ -29,8 +29,9 @@ def demultiplex():
     parser.add_argument('--sample-column', help='Name of the column containing sample names', type=str, default='Sample', metavar = 'Sample')
     parser.add_argument('--column-separator', help='Separator that is used in samplesheet', type=str, default='\t')
     parser.add_argument('--buffer-size', help="Buffer size for the FASTQ reader (in Bytes). Must be large enough to contain the largest entry.", type = int, default = 4000000, metavar = '4000000')
+    parser.add_argument('--output', '-o', help = "Output directory to write individual fastq files to.", type = str, metavar = 'fastq', default = None)
     parser.add_argument('--threads', '-t', help='Number of threads to use for multiprocessing.', type=int, metavar='1', default=1)
-    parser.add_argument('--writer-threads', help='Number of threads to use for writing', type=int, metavar='2', default=2)
+    parser.add_argument('--writer-threads', '-w', help='Number of threads to use for writing', type=int, metavar='2', default=2)
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3')
     parser.add_argument('--debug', action='store_true')
 
@@ -49,6 +50,14 @@ def demultiplex():
         logger.setLevel(logging.WARNING)
 
     logger.debug('Working on {} using {} threads'.format(args.fastq, args.threads))
+
+    #
+    # Check output folder
+    #
+    args.output = os.path.abspath(args.output) if args.output != None else os.path.abspath(os.getcwd())
+    if not os.access(args.output, os.W_OK):
+        logger.error("Error: Directory {} does not exist or is not writeable.".format(args.output))
+        sys.exit(1)
 
     #
     # Create regular expression for barcode parsing from sequence header
@@ -82,7 +91,7 @@ def demultiplex():
     if args.write_unmatched:
         queues = {'unmatched': manager.Queue()}
         queue_list = [queues['unmatched']]
-        writer_pool.apply_async(_writer, (queues['unmatched'], ['unmatched']), callback = lambda x: print(x))
+        writer_pool.apply_async(_writer, (queues['unmatched'], ['unmatched'], args.output), callback = lambda x: print(x))
     else:
         queues = {}
         queue_list = []
@@ -91,7 +100,7 @@ def demultiplex():
         logger.debug('Creating writer queue for samples {}.'.format(','.join(chunk)))
         q = manager.Queue()
         q_bc_dict = dict((k, barcode_dict[k]) for k in chunk)
-        writer_pool.apply_async(_writer, (q, q_bc_dict), callback = lambda x: print(x))
+        writer_pool.apply_async(_writer, (q, q_bc_dict, args.output), callback = lambda x: print(x))
         queue_list.append(q)
         for bc in q_bc_dict.values():
             queues[bc] = q

@@ -1,6 +1,7 @@
 import gzip
 import re
 import time
+import os
 from functools import reduce
 
 def entryfunc(blob):
@@ -43,11 +44,11 @@ def _demult_chunk(chunk, mutationhash, regex, write_unmatched, q):
     writing = time.time()
     return((len(chunk), parsing-start, writing-parsing))
 
-def _writer(q, barcodes):
+def _writer(q, barcodes, prefix = ''):
     count = 0
     handles = dict()
     for (sample, barcode) in barcodes.items():
-        handles[barcode] = gzip.open(sample + '.fastq.gz', 'wb')
+        handles[barcode] = gzip.open(os.path.join(prefix, sample + '.fastq.gz'), 'wb')
 
     while 1:
         (bc, fastq) = q.get()
