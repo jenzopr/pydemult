@@ -28,19 +28,22 @@ TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTATGATGCTGTGAGTTCC
 @CCDDDDFHHHHHJIJFDDDDDDDDDBDDDDDBB0@B#####################
 ```
 
-Since the sample barcode is six bases long, we have to set the corresponding option `--barcode-length 6` in the call
+Since the sample barcode is six bases long, we have to set the corresponding `--barcode-regex` option to `(.*):(?P<CB>[ATGCN]{6}` in the call
 
 ```
-pydemult --fastq input.fastq.gz --barcodes barcodes.txt --barcode-length 6
+pydemult --fastq input.fastq.gz --barcodes barcodes.txt --barcode-regex "(.*):(?P<CB>[ATGCN]{6}"
 ```
+
+### Barcode and UMI regular expressions
+
+By default, `pydemult` parses the read name for the cell barcode with regular expressions. Cell barcodes are indicated by a capturing group called `CB`, while (optional) UMIs are indicated by a capturing group called `UMI`. Some examples include:
+
+- `(.*):(?P<CB>[ATGCN]{11}`, for a cell barcode of length 11 that is present after the last colon of the read name.
+- `(.*):CELL_(?P<CB>[ATGCN]{10}):UMI_(?P<UMI>[ATGCN]{8})`, for a cell barcode of length 10, followed by a UMI sequence of length 8. For DropSeq data preprocessed by the [umis](https://github.com/vals/umis) tool, a regex like this is advisable.
 
 ### Output
 
 `pydemult` will create a compressed fastq file for each **sample barcode**, with the filename taken from the corresponding *Sample* column entry of `barcodes.txt`.  
-
-### Barcode and UMI regular expressions
-
-By default, `pydemult` parses the read name for the cell barcode `CB` with the regular expression `(.*):(?P<CB>[ATGCN]{#bclen#}`, where `#bclen#` is replaced by the value of `--barcode-length`. For DropSeq data preprocessed by the [umis](https://github.com/vals/umis) tool, a regex like `(.*):CELL_(?P<CB>[ATGCN]{#bclen#}):UMI_(?P<UMI>[ATGCN]{8})` is advisable.
 
 ### A note on multithreading
 
