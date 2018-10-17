@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import os
+import sys
 import argparse
 import logging
 import itertools
@@ -32,7 +34,7 @@ def demultiplex():
     parser.add_argument('--output', '-o', help = "Output directory to write individual fastq files to.", type = str, metavar = 'fastq', default = None)
     parser.add_argument('--threads', '-t', help='Number of threads to use for multiprocessing.', type=int, metavar='1', default=1)
     parser.add_argument('--writer-threads', '-w', help='Number of threads to use for writing', type=int, metavar='2', default=2)
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.4')
     parser.add_argument('--debug', action='store_true')
 
     args = parser.parse_args()
@@ -69,7 +71,7 @@ def demultiplex():
         logger.error('No cell barcode group CB found in barcode regex.')
         sys.exit(1)
 
-    logger.debug('Set barcode regex to {}'.format(barcode_regex))
+    #logger.debug('Set barcode regex to {}'.format(barcode_regex))
 
     #
     # Create mutationhash in case of barcode whitelist
