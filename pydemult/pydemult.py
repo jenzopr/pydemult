@@ -23,7 +23,7 @@ def demultiplex():
     parser = argparse.ArgumentParser(description='Demultiplexing of fastq files')
     parser.add_argument('--fastq', '-f', help='FASTQ file for demultiplexing.', metavar='input.fastq.gz', type=str)
     parser.add_argument('--samplesheet', '-s', help = 'Samplesheet containing barcodes and samplenames', metavar = 'samplesheet.txt', type=str)
-    parser.add_argument('--barcode-regex', '-b', help = 'Regular expression to parse cell barcode (CB) and UMIs (UMI) from read names', metavar = '(.*):(?P<CB>[ATGCN]{11}', default = '(.*):(?P<CB>[ATGCN]{11}', type = str)
+    parser.add_argument('--barcode-regex', '-b', help = 'Regular expression to parse cell barcode (CB) and UMIs (UMI) from read names', default = '(.*):(?P<CB>[ATGCN]{11}', type = str)
     parser.add_argument('--edit-distance', help='Maximum allowed edit distance for barcodes', metavar = '1', type=int, default = 1)
     parser.add_argument('--edit-alphabet', help='The alphabet that is used to created edited barcodes', choices=['N', 'ACGT', 'ACGTN'], default = "ACGTN", type = str, metavar = "ACGTN")
     parser.add_argument('--write-unmatched', help='Write reads with unmatched barcodes into unmatched.fastq.gz', action='store_true')
