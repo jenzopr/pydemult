@@ -1,9 +1,27 @@
-# Streamed and parallel demultiplexing of fastq files
+---
+layout: default
+---
+# pydemult - Streamed and parallel demultiplexing of fastq files
 
 ## Quickstart
 
+```bash
+pydemult --fastq input.fastq.gz
+         --barcodes barcodes.txt
+         --threads 4
+         --writer-threads 16
 ```
-pydemult --fastq input.fastq.gz --barcodes barcodes.txt --threads 4 --writer-threads 16
+
+## Installation
+
+`pydemult` is available for both, the `conda` package manager or `Pypi`:
+
+```bash
+# Run the following line to install from conda
+conda install -c bioconda pydemult
+
+# Run the following line to install from Pypi
+pip install pydemult
 ```
 
 ## Requirements and usage
@@ -23,15 +41,17 @@ and a typical entry in the fastq file looks like this:
 
 ```
 @HWI-ST808:140:H0L10ADXX:1:1101:8463:2:NNNNNN:CTTCCA
-TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTATGATGCTGTGAGTTCC
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTATGATGCTGTGAGTT
 +
-@CCDDDDFHHHHHJIJFDDDDDDDDDBDDDDDBB0@B#####################
+@CCDDDDFHHHHHJIJFDDDDDDDDDBDDDDDBB0@B###################
 ```
 
 Since the sample barcode is six bases long, we have to set the corresponding `--barcode-regex` option to `(.*):(?P<CB>[ATGCN]{6}` in the call
 
 ```
-pydemult --fastq input.fastq.gz --barcodes barcodes.txt --barcode-regex "(.*):(?P<CB>[ATGCN]{6}"
+pydemult --fastq input.fastq.gz
+         --barcodes barcodes.txt
+         --barcode-regex "(.*):(?P<CB>[ATGCN]{6}"
 ```
 
 ### Barcode and UMI regular expressions

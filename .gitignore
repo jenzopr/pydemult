@@ -1,1 +1,5 @@
-*.pyc
+_site/*
+.sass-cache/*
+docs/
+.DS_Store
+Gemfile.lock
