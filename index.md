@@ -18,7 +18,7 @@ pydemult --fastq input.fastq.gz
 
 ```bash
 # Run the following line to install from conda
-conda install -c bioconda pydemult
+conda install -c conda-forge -c bioconda pydemult
 
 # Run the following line to install from Pypi
 pip install pydemult
