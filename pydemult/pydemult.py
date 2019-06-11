@@ -76,7 +76,7 @@ def demultiplex():
     #
     # Create mutationhash in case of barcode whitelist
     #
-    samplesheet = pd.read_table(args.samplesheet, sep = args.column_separator, index_col = args.sample_column)
+    samplesheet = pd.read_csv(args.samplesheet, sep = args.column_separator, index_col = args.sample_column)
     barcode_dict = samplesheet[args.barcode_column].to_dict()
     barcodes = list(barcode_dict.values())
 
