@@ -9,10 +9,14 @@ def entryfunc(blob):
     # (header, sequence, quality)
     return(zip(entries[::4], entries[1::4], entries[3::4]))
 
-def _demult_chunk(chunk, mutationhash, regex, write_unmatched, q):
+def _demult_chunk(chunk, mutationhash, regex, write_unmatched, q, keep_empty = False):
     start = time.time()
     bc_chunks = dict()
     for entry in entryfunc(chunk):
+        # Ignore empty sequences
+        if entry[1].decode('utf-8') == '' and not keep_empty:
+            continue
+
         is_unmatched = False
         match = regex.match(entry[0].decode('utf-8'))
 

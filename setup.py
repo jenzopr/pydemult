@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='pydemult',
-      version='0.4.1',
+      version='0.5',
       description='Streamed and parallel demultiplexing of fastq files in python',
       long_description=readme(),
       url='https://github.com/jenzopr/pydemult',
