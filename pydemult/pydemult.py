@@ -26,7 +26,7 @@ def demultiplex():
     parser.add_argument('--column-separator', help='Separator that is used in samplesheet', type=str, default='\t')
     parser.add_argument('--barcode-column', help='Name of the column containing barcodes', type=str, default='Barcode', metavar = 'Barcode')
     parser.add_argument('--sample-column', help='Name of the column containing sample names', type=str, default='Sample', metavar = 'Sample')
-    parser.add_argument('--barcode-regex', '-b', help = 'Regular expression to parse cell barcode (CB) and UMIs (UMI) from read names', default = '(.*):(?P<CB>[ATGCN]{11}', type = str)
+    parser.add_argument('--barcode-regex', '-b', help = 'Regular expression to parse cell barcode (CB) and UMIs (UMI) from read names', default = '(.*):(?P<CB>[ATGCN]{11})', type = str)
     parser.add_argument('--edit-distance', help='Maximum allowed edit distance for barcodes', metavar = '1', type=int, default = 1)
     parser.add_argument('--edit-alphabet', help='The alphabet that is used to created edited barcodes', choices=['N', 'ACGT', 'ACGTN'], default = "ACGTN", type = str, metavar = "ACGTN")
     parser.add_argument('--buffer-size', help="Buffer size for the FASTQ reader (in Bytes). Must be large enough to contain the largest entry.", type = int, default = 4000000, metavar = '4000000')
