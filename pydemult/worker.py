@@ -48,11 +48,11 @@ def _demult_chunk(chunk, mutationhash, regex, write_unmatched, q, keep_empty = F
     writing = time.time()
     return((len(chunk), parsing-start, writing-parsing))
 
-def _writer(q, barcodes, prefix = ''):
+def _writer(q, barcodes, prefix = '', suffix = '.fastq.gz'):
     count = 0
     handles = dict()
     for (sample, barcode) in barcodes.items():
-        handles[barcode] = gzip.open(os.path.join(prefix, sample + '.fastq.gz'), 'wb')
+        handles[barcode] = gzip.open(os.path.join(prefix, sample + suffix), 'wb')
 
     while 1:
         (bc, fastq) = q.get()
