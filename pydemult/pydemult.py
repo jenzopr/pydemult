@@ -21,8 +21,8 @@ def chunker_list(seq, size):
 
 def demultiplex():
     parser = argparse.ArgumentParser(description='Demultiplexing of fastq files')
-    parser.add_argument('--fastq', '-f', help='FASTQ file for demultiplexing.', metavar='input.fastq.gz', type=str)
-    parser.add_argument('--samplesheet', '-s', help = 'Samplesheet containing barcodes and samplenames', metavar = 'samplesheet.txt', type=str)
+    parser.add_argument('--fastq', '-f', help='FASTQ file for demultiplexing.', metavar='input.fastq.gz', type=str, required=True)
+    parser.add_argument('--samplesheet', '-s', help = 'Samplesheet containing barcodes and samplenames', metavar = 'samplesheet.txt', type=str, required=True)
     parser.add_argument('--column-separator', help='Separator that is used in samplesheet', type=str, default='\t')
     parser.add_argument('--barcode-column', help='Name of the column containing barcodes', type=str, default='Barcode', metavar = 'Barcode')
     parser.add_argument('--sample-column', help='Name of the column containing sample names', type=str, default='Sample', metavar = 'Sample')
