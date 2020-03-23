@@ -95,7 +95,7 @@ def demultiplex():
     if args.write_unmatched:
         queues = {'unmatched': manager.Queue()}
         queue_list = [queues['unmatched']]
-        writer_pool.apply_async(_writer, (queues['unmatched'], ['unmatched'], prefix = args.output, suffix = args.output_file_suffix), callback = lambda x: print(x))
+        writer_pool.apply_async(_writer, (queues['unmatched'], ['unmatched'], args.output, args.output_file_suffix), callback = lambda x: print(x))
     else:
         queues = {}
         queue_list = []
@@ -104,7 +104,7 @@ def demultiplex():
         logger.debug('Creating writer queue for samples {}.'.format(','.join(chunk)))
         q = manager.Queue()
         q_bc_dict = dict((k, barcode_dict[k]) for k in chunk)
-        writer_pool.apply_async(_writer, (q, q_bc_dict, prefix = args.output, suffix = args.output_file_suffix), callback = lambda x: print(x))
+        writer_pool.apply_async(_writer, (q, q_bc_dict, args.output, args.output_file_suffix), callback = lambda x: print(x))
         queue_list.append(q)
         for bc in q_bc_dict.values():
             queues[bc] = q
