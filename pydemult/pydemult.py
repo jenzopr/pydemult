@@ -95,7 +95,7 @@ def demultiplex():
     if args.write_unmatched:
         queues = {'unmatched': manager.Queue()}
         queue_list = [queues['unmatched']]
-        writer_pool.apply_async(_writer, (queues['unmatched'], ['unmatched'], args.output, args.output_file_suffix), callback = lambda x: print(x))
+        writer_pool.apply_async(_writer, (queues['unmatched'], {'unmatched': 'unmatched'}, args.output, args.output_file_suffix), callback = lambda x: print(x))
     else:
         queues = {}
         queue_list = []
