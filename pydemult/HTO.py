@@ -10,7 +10,7 @@ def count():
     parser.add_argument('--reference', '-r', help='Tab-separated reference file containing hash tag sequences and names')
     parser.add_argument('--whitelist', '-w', help='Cell barcode whitelist of allowed / known cell barcodes')
     parser.add_argument('--barcode-regex', '-b', help = 'Regular expression to parse cell barcode (CB) from barcode sequences', default = '(.*):(?P<CB>[ATGCN]{11}', type = str)
-    parser.add_argument('--hashtag-regex', '-h', help = 'Regular expression to parse hash tag sequences (HTO) from hash tag sequences', default = '(.*)(?P<HTO>[ATGCN]{15}', type = str)
+    parser.add_argument('--hashtag-regex', '-c', help = 'Regular expression to parse hash tag sequences (HTO) from hash tag sequences', default = '(.*)(?P<HTO>[ATGCN]{15}', type = str)
     parser.add_argument('--barcode-edit-distance', help='Maximum allowed edit distance for barcodes', metavar = '1', type=int, default = 1)
     parser.add_argument('--hashtag-edit-distance', help='Maximum allowed edit distance for hash tag oligos', metavar = '2', type=int, default = 1)
     parser.add_argument('--edit-alphabet', help='The alphabet that is used to created edited barcodes / hash tag sequences', choices=['N', 'ACGT', 'ACGTN'], default = "ACGTN", type = str, metavar = "ACGTN")
