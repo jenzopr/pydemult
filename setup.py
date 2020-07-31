@@ -14,7 +14,8 @@ setup(name='pydemult',
       license='MIT',
       packages=['pydemult'],
       entry_points = {
-        'console_scripts': ['pydemult = pydemult.pydemult:demultiplex']
+        'console_scripts': ['pydemult = pydemult.pydemult:demultiplex',
+                            'HTOcount = pydemult.HTO:count']
       },
       scripts = [],
       install_requires=[
