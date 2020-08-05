@@ -2,15 +2,44 @@ import sys
 import argparse
 import logging
 import re
+import time
 
 from .mutationhash import mutationhash
+from .worker import entryfunc
+
+def _find_bc(chunk, mutationhash, regex, keep_empty = False):
+    start = time.time()
+    count = 0
+    for entry in entryfunc(chunk):
+        # Ignore empty sequences
+        if entry[1].decode('utf-8') == '' and not keep_empty:
+            continue
+
+        is_unmatched = False
+        match = regex.match(entry[0].decode('utf-8'))
+
+        if match is not None:
+            try:
+                bc_match = match.group('CB')
+                origin = mutationhash[bc_match]
+
+                if len(origin) > 1:
+                    is_unmatched = True
+                else:
+                    barcode = list(origin)[0]
+                    count = count + 1
+            except KeyError:
+                is_unmatched = True
+    parsing = time.time()
+    return((count, parsing-start))
+    
 
 def count():
     parser = argparse.ArgumentParser(description='Demultiplex samples based fastq files from hash tag oligo data')
     parser.add_argument('--reference', '-r', help='Tab-separated reference file containing hash tag sequences and names')
     parser.add_argument('--whitelist', '-w', help='Cell barcode whitelist of allowed / known cell barcodes')
-    parser.add_argument('--barcode-regex', '-b', help = 'Regular expression to parse cell barcode (CB) from barcode sequences', default = '(.*):(?P<CB>[ATGCN]{11}', type = str)
-    parser.add_argument('--hashtag-regex', '-c', help = 'Regular expression to parse hash tag sequences (HTO) from hash tag sequences', default = '(.*)(?P<HTO>[ATGCN]{15}', type = str)
+    parser.add_argument('--barcode-regex', '-b', help = 'Regular expression to parse cell barcode (CB) from barcode sequences', default = '(.*):(?P<CB>[ATGCN]{11})', type = str)
+    parser.add_argument('--hashtag-regex', '-c', help = 'Regular expression to parse hash tag sequences (HTO) from hash tag sequences', default = '(.*)(?P<HTO>[ATGCN]{15})', type = str)
     parser.add_argument('--barcode-edit-distance', help='Maximum allowed edit distance for barcodes', metavar = '1', type=int, default = 1)
     parser.add_argument('--hashtag-edit-distance', help='Maximum allowed edit distance for hash tag oligos', metavar = '2', type=int, default = 1)
     parser.add_argument('--edit-alphabet', help='The alphabet that is used to created edited barcodes / hash tag sequences', choices=['N', 'ACGT', 'ACGTN'], default = "ACGTN", type = str, metavar = "ACGTN")
@@ -35,7 +64,7 @@ def count():
     else:
         logger.setLevel(logging.WARNING)
 
-    logger.debug('Working on {} using {} threads'.format(args.fastq, args.threads))
+    logger.debug('Working on {} using {} threads'.format(args.barcode_sequences, args.threads))
 
     #
     # Create regular expression for barcode / hash tag oligo parsing from sequences
@@ -48,7 +77,7 @@ def count():
         logger.error('No cell barcode group CB found in barcode regex.')
         sys.exit(1)
     # Validate regex for presence of HTO group
-    if 'CB' not in c_hashtag_regex.groupindex.keys():
+    if 'HTO' not in c_hashtag_regex.groupindex.keys():
         logger.error('No cell barcode group HTO found in hashtag regex.')
         sys.exit(1)
 
@@ -58,9 +87,23 @@ def count():
     with open(args.whitelist, 'r') as file:
         barcodes = [line.rstrip('\n') for line in file]
 
-    logger.debug('Whitelist contains the following barcodes' + ','.join(barcodes))
+    logger.debug('Whitelist contains the following barcodes: ' + ','.join(barcodes))
 
-    logger.debug('Creating mutation hash with edit distance {} for {} barcodes.'.format(args.edit_distance, len(barcodes)))
-    # mut_hash = mutationhash(strings = barcodes, nedit = args.edit_distance, alphabet = list(args.edit_alphabet), log = logger)
+    logger.debug('Creating mutation hash with edit distance {} for {} barcodes.'.format(args.barcode_edit_distance, len(barcodes)))
+    barcode_mutationhash = mutationhash(strings = barcodes, nedit = args.barcode_edit_distance, alphabet = list(args.edit_alphabet), log = logger)
+
+    #
+    # Construct a list of barcode indices from barcode reads
+    #
+    bufsize = args.buffer_size
+
+    zcat = subprocess.Popen(['zcat', args.barcode_sequences], stdout=subprocess.PIPE, bufsize = bufsize)
+    with zcat.stdout as fh:
+        blob_generator = buffered_blob(fh, bufsize)
+        find_bc = partial(_find_bc, mutationhash = mut_hash, regex = c_barcode_regex)
+        data = lazy_map(find_bc, blob_generator, n_cpus = args.threads)
+    
+    for d in data:
+        print('{}\t{} seconds'.format(d[0], d[1]))
 
     
